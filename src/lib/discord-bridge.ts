@@ -14,6 +14,9 @@ const ECHO_BOT_ID = DISCORD_BOT_TOKEN
   ? Buffer.from(DISCORD_BOT_TOKEN.split('.')[0], 'base64').toString()
   : '1503694342634606682';
 
+// Mention format to trigger Echo's z.ai gateway
+const ECHO_MENTION = `<@${ECHO_BOT_ID}>`;
+
 interface DiscordMessage {
   id: string;
   content: string;
@@ -90,7 +93,8 @@ async function ensureWebhook(): Promise<{ id: string; token: string } | null> {
 
 /**
  * Send user message via webhook (appears as "PWA User", not a bot).
- * The z.ai gateway treats this as a user message and Echo responds.
+ * Prepends @Echo mention so her z.ai gateway picks it up and responds.
+ * The content is sent as: "<@bot_id> actual user message"
  */
 async function sendViaWebhook(content: string): Promise<string | null> {
   const webhook = await ensureWebhook();
@@ -99,13 +103,19 @@ async function sendViaWebhook(content: string): Promise<string | null> {
     return null;
   }
 
+  // Prepend @Echo mention to trigger her gateway, then the actual message
+  const mentionContent = `${ECHO_MENTION} ${content}`;
+  // Discord 2000 char limit — leave room for the mention
+  const maxContent = 2000 - ECHO_MENTION.length - 1;
+  const finalContent = mentionContent.substring(0, maxContent);
+
   try {
     const url = `${BASE}/webhooks/${webhook.id}/${webhook.token}?wait=true`;
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        content: content.substring(0, 2000),
+        content: finalContent,
         username: 'PWA User',
         avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png',
       }),
@@ -150,7 +160,8 @@ async function pollForResponse(
 
       for (const msg of messages) {
         if (msg.author.bot && msg.author.id === ECHO_BOT_ID) {
-          let fullResponse = msg.content;
+          // Strip any echo mention from the response
+          let fullResponse = msg.content.replace(/<@\d+>\s*/g, '').trim();
 
           // Collect follow-up messages (Echo may split long responses)
           const laterMessages = await fetchLaterMessages(msg.id, timeoutMs - (Date.now() - startTime));
@@ -196,7 +207,8 @@ async function fetchLaterMessages(
       if (botMessages.length === 0) break;
 
       for (const msg of botMessages) {
-        contents.push(msg.content);
+        // Strip any mention tags from follow-up messages too
+        contents.push(msg.content.replace(/<@\d+>\s*/g, '').trim());
         if (msg.id > lastId) lastId = msg.id;
       }
     } catch {
