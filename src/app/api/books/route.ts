@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { geminiChat } from '@/lib/gemini';
+import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
 
 export async function GET() {
-  try {
-    return NextResponse.json([]);
-  } catch (error) {
-    console.error('GET books error:', error);
-    return NextResponse.json([]);
-  }
+  return NextResponse.json([]);
 }
 
 export async function POST(req: NextRequest) {
@@ -17,28 +12,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    const completion = await geminiChat([
-      {
-        role: 'system',
-        content: `You are a structured book content generator. Generate a comprehensive book outline with 5-8 chapters for the given topic.
-Return ONLY valid JSON (no markdown, no code blocks) in this exact format:
-{"title": "Book Title Here", "chapters": [{"title": "Chapter 1 Title", "summary": "Brief summary", "content": "Full chapter content in markdown with sections, key points, and examples. Make it educational and thorough (at least 300 words per chapter)."}]}
-Ensure the content is educational, well-structured, and uses markdown formatting (headers, lists, bold text, code blocks where relevant).`,
-      },
-      {
-        role: 'user',
-        content: `Generate a comprehensive learning book about: ${topic}. ${title ? `Suggested title: ${title}` : ''}`,
-      },
-    ]);
+    const status = getBridgeStatus();
+    if (!status.configured) {
+      return NextResponse.json({ error: 'Diana is being configured. Please try again shortly.' }, { status: 503 });
+    }
 
-    const responseText = (completion as any).choices?.[0]?.message?.content || '';
-    let cleanJson = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const prompt = `[Generate a book]: Generate a comprehensive book outline with 5-8 chapters about: ${topic}${title ? `. Suggested title: ${title}` : ''}.
+Return ONLY valid JSON in this exact format:
+{"title": "Book Title Here", "chapters": [{"title": "Chapter 1 Title", "summary": "Brief summary", "content": "Full chapter content in markdown. At least 300 words per chapter."}]}`;
+
+    const response = await bridgeChat(prompt);
+    if (!response) {
+      return NextResponse.json({ error: 'Failed to generate book. Please try again.' }, { status: 500 });
+    }
+
+    let cleanJson = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     let bookData;
     try {
       bookData = JSON.parse(cleanJson);
     } catch {
-      return NextResponse.json({ error: 'Failed to generate book structure. Please try again.' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to parse book structure. Please try again.' }, { status: 500 });
     }
 
     const bookId = crypto.randomUUID ? crypto.randomUUID() : `book_${Date.now()}`;
@@ -62,10 +56,5 @@ Ensure the content is educational, well-structured, and uses markdown formatting
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('DELETE book error:', error);
-    return NextResponse.json({ error: 'Failed to delete book' }, { status: 500 });
-  }
+  return NextResponse.json({ success: true });
 }

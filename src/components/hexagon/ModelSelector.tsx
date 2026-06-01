@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AIModel } from '@/lib/hexagon-types';
-import { Sparkles, Zap, Crown } from 'lucide-react';
+import { Sparkles, Zap, Crown, Hexagon } from 'lucide-react';
 
 interface ModelSelectorProps {
   models: AIModel[];
@@ -20,8 +20,7 @@ interface ModelSelectorProps {
 }
 
 const modelIcons: Record<string, React.ReactNode> = {
-  zhipu: <Crown className="h-3 w-3" />,
-  google: <Sparkles className="h-3 w-3" />,
+  discord: <Hexagon className="h-3 w-3" />,
 };
 
 const tierIcons: Record<string, React.ReactNode> = {

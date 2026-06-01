@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { geminiChat } from '@/lib/gemini';
+import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,20 +9,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    let context = providedContext || 'No knowledge base content available.';
+    const status = getBridgeStatus();
+    if (!status.configured) {
+      return NextResponse.json({
+        answer: "Diana's knowledge system is being configured. Please try again shortly.",
+      });
+    }
 
-    const completion = await geminiChat([
-      {
-        role: 'system',
-        content: `You are Diana AI, a knowledge assistant. Answer questions based on the provided knowledge base content. If the answer is not in the knowledge base, say so. Use markdown formatting.`,
-      },
-      {
-        role: 'user',
-        content: `Knowledge Base Content:\n${context}\n\nQuestion: ${query}`,
-      },
-    ]);
+    const context = providedContext || 'No knowledge base content available.';
+    const prompt = `[Knowledge Base Content]:\n${context}\n\n[Question]: ${query}`;
 
-    const answer = (completion as any).choices?.[0]?.message?.content || 'I could not find an answer.';
+    const response = await bridgeChat(prompt);
+    const answer = response || 'I could not find an answer.';
 
     return NextResponse.json({ answer });
   } catch (error) {

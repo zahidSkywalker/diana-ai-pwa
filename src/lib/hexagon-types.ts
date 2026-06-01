@@ -46,22 +46,15 @@ export interface DiscordMessage {
 
 export const AVAILABLE_MODELS: AIModel[] = [
   {
-    id: 'gemini-2.0-flash',
-    name: 'Gemini 2.0 Flash',
-    description: 'Fast and intelligent, great for general tasks',
-    provider: 'google',
-    tier: 'free',
-  },
-  {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    description: 'Enhanced reasoning and long context',
-    provider: 'google',
+    id: 'diana-discord',
+    name: 'Diana AI',
+    description: 'Diana responds through Discord bridge',
+    provider: 'discord',
     tier: 'free',
   },
 ];
 
-export const DEFAULT_MODEL = 'gemini-2.0-flash';
+export const DEFAULT_MODEL = 'diana-discord';
 
 export const SYSTEM_PROMPT = `You are HexaGon AI, a versatile and intelligent AI assistant created to help users with a wide range of tasks. You can assist with:
 
