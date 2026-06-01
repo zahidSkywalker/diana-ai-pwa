@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiChat, getEngineStatus } from '@/lib/ai-engine';
+import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
 
 const CLI_TOKEN = process.env.ECHO_CLI_TOKEN || 'echo-cli-2026-auth';
-
-const SYSTEM_PROMPT = `You are Echo AI, a versatile assistant. Help with any task the user requests. Be concise and direct.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,20 +16,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    const aiMessages = messages
-      .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      }));
+    const status = getBridgeStatus();
+    if (!status.configured) {
+      return NextResponse.json({
+        content: "Echo is being configured. Please try again shortly.",
+        sessionId: sessionId || null,
+        timestamp: new Date().toISOString(),
+        model: 'echo',
+        usage: null,
+      });
+    }
 
-    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
+    const history = messages
+      .filter((m: { role: string }) => m.role !== 'system')
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
+      .join('\n');
+
+    const response = await bridgeChat(history);
 
     return NextResponse.json({
       content: response || 'No response generated.',
       sessionId: sessionId || null,
       timestamp: new Date().toISOString(),
-      model: 'echo-direct',
+      model: 'echo',
       usage: null,
     });
   } catch (error: unknown) {
@@ -45,12 +52,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const status = getEngineStatus();
+  const status = getBridgeStatus();
   return NextResponse.json({
-    status: status.configured ? 'online' : 'offline',
+    status: status.configured ? 'online' : 'configuring',
     service: 'Echo CLI Relay',
     version: '3.0.0',
-    engine: status,
+    bridge: status,
     timestamp: new Date().toISOString(),
   });
 }

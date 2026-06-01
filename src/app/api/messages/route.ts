@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { getEngineStatus } from '@/lib/ai-engine';
+import { getBridgeStatus } from '@/lib/discord-bridge';
 
-// Messages endpoint — returns engine status (no more Discord dependency)
 export async function GET() {
   try {
-    const status = getEngineStatus();
+    const status = getBridgeStatus();
 
     return NextResponse.json({
       messages: [],
-      engine: status,
+      bridge: status,
     });
   } catch (error) {
     console.error('Messages API error:', error);

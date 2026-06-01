@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiChat, getEngineStatus } from '@/lib/ai-engine';
-
-const SYSTEM_PROMPT = `You are Echo AI Book Generator. Generate comprehensive book content with detailed chapters. Always return valid JSON in the requested format.`;
+import { bridgeChat } from '@/lib/discord-bridge';
 
 export async function GET() {
   return NextResponse.json([]);
@@ -14,11 +12,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    const prompt = `Generate a comprehensive book outline with 5-8 chapters about: ${topic}${title ? `. Suggested title: ${title}` : ''}.
+    const prompt = `[Generate a book]: Generate a comprehensive book outline with 5-8 chapters about: ${topic}${title ? `. Suggested title: ${title}` : ''}.
 Return ONLY valid JSON in this exact format:
 {"title": "Book Title Here", "chapters": [{"title": "Chapter 1 Title", "summary": "Brief summary", "content": "Full chapter content in markdown. At least 300 words per chapter."}]}`;
 
-    const response = await aiChat([{ role: 'user', content: prompt }], SYSTEM_PROMPT);
+    const response = await bridgeChat(prompt);
     if (!response) {
       return NextResponse.json({ error: 'Failed to generate book. Please try again.' }, { status: 500 });
     }

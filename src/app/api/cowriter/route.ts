@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiChat, getEngineStatus } from '@/lib/ai-engine';
-
-const SYSTEM_PROMPT = `You are Echo AI Co-Writer. Help with writing, editing, and improving documents. Be concise and useful. Format in markdown.`;
+import { bridgeChat } from '@/lib/discord-bridge';
 
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    const aiMessages = messages
-      .map((m: { role: string; content: string }) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      }));
+    const chatHistory = messages
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
+      .join('\n');
 
-    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
+    const prompt = `[You are JARVIS Co-Writer]: Help with writing, editing, and improving documents. Be concise and useful. Format in markdown.\n\n${chatHistory}`;
 
-    // Simulate streaming
+    const response = await bridgeChat(prompt);
+
     const text = response || 'I could not process your request.';
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

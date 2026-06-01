@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiChat, getEngineStatus } from '@/lib/ai-engine';
+import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
 
 const CLI_TOKEN = process.env.ZENITH_TOKEN || 'zenith-cli-2026';
-
-const SYSTEM_PROMPT = `You are Echo AI, a versatile assistant handling requests from the Zenith CLI client. Help with any task. Be concise and direct.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,14 +15,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages required' }, { status: 400 });
     }
 
-    const aiMessages = messages
+    const history = messages
       .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      }));
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
+      .join('\n');
 
-    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
+    const response = await bridgeChat(history);
 
     return NextResponse.json({
       id: response ? `zenith_${Date.now()}` : undefined,
@@ -42,13 +38,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const status = getEngineStatus();
+  const status = getBridgeStatus();
   return NextResponse.json({
-    status: status.configured ? 'online' : 'offline',
+    status: status.configured ? 'online' : 'configuring',
     service: 'Zenith Relay',
     version: '3.0.0',
     creator: 'Zahidul Islam',
-    engine: status,
+    bridge: status,
     timestamp: new Date().toISOString(),
   });
 }

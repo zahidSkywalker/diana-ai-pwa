@@ -36,15 +36,15 @@ export interface ChatRequest {
 
 export const AVAILABLE_MODELS: AIModel[] = [
   {
-    id: 'echo-direct',
+    id: 'echo',
     name: 'Echo AI',
-    description: 'Echo AI — direct connection',
+    description: 'Echo AI assistant',
     provider: 'z-ai',
     tier: 'free',
   },
 ];
 
-export const DEFAULT_MODEL = 'echo-direct';
+export const DEFAULT_MODEL = 'echo';
 
 export const SYSTEM_PROMPT = `You are HexaGon AI, a versatile and intelligent AI assistant created to help users with a wide range of tasks. You can assist with:
 
