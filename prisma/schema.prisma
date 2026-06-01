@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  title       String   @default("New Conversation")
+  mode        String   @default("chat")
+  createdAt   DateTime @default(now())
+  messages    Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  attachments    String       @default("[]")
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String   @default("Untitled Document")
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Book {
+  id            String    @id @default(cuid())
+  title         String
+  topic         String
+  progress      Int       @default(0)
+  createdAt     DateTime  @default(now())
+  chapters      Chapter[]
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  bookId    String
+  title     String
+  content   String   @default("")
+  order     Int
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeBase {
+  id          String         @id @default(cuid())
+  title       String
+  description String         @default("")
+  createdAt   DateTime       @default(now())
+  entries     KBEntry[]
+}
+
+model KBEntry {
+  id              String         @id @default(cuid())
+  knowledgeBaseId String
+  title           String
+  content         String
+  createdAt       DateTime       @default(now())
+  knowledgeBase   KnowledgeBase  @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+}
+
+model UserStats {
+  id             String   @id @default(cuid())
+  totalChats     Int      @default(0)
+  totalQuizzes   Int      @default(0)
+  totalBooks     Int      @default(0)
+  questionsAsked Int      @default(0)
+  lastActive     DateTime @default(now())
+}

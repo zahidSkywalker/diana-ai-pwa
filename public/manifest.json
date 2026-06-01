@@ -1,0 +1,19 @@
+{
+  "name": "Diana AI",
+  "short_name": "Diana",
+  "description": "Diana AI — An advanced agentic AI assistant for coding, research, writing, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f0e",
+  "theme_color": "#0f8a6e",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

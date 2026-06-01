@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </radialGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#0099ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)"/>
+  <circle cx="256" cy="256" r="240" fill="url(#glowGrad)"/>
+
+  <!-- Outer ring -->
+  <circle cx="256" cy="256" r="220" stroke="#00d4ff" stroke-opacity="0.3" stroke-width="2" fill="none"/>
+  <circle cx="256" cy="256" r="200" stroke="#00d4ff" stroke-opacity="0.15" stroke-width="1" fill="none"/>
+
+  <!-- Decorative lines -->
+  <line x1="256" y1="36" x2="256" y2="70" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="256" y1="442" x2="256" y2="476" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="36" y1="256" x2="70" y2="256" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="2"/>
+  <line x1="442" y1="256" x2="476" y2="256" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="2"/>
+
+  <!-- Diagonal lines -->
+  <line x1="100" y1="100" x2="125" y2="125" stroke="#00d4ff" stroke-opacity="0.2" stroke-width="1.5"/>
+  <line x1="387" y1="100" x2="412" y2="125" stroke="#00d4ff" stroke-opacity="0.2" stroke-width="1.5"/>
+  <line x1="100" y1="412" x2="125" y2="387" stroke="#00d4ff" stroke-opacity="0.2" stroke-width="1.5"/>
+  <line x1="412" y1="412" x2="387" y2="387" stroke="#00d4ff" stroke-opacity="0.2" stroke-width="1.5"/>
+
+  <!-- Letter J -->
+  <text x="256" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="200" font-weight="700" fill="url(#letterGrad)" text-anchor="middle" letter-spacing="-5">J</text>
+
+  <!-- Inner arc decoration under J -->
+  <path d="M 180 330 Q 256 380 332 330" stroke="#00d4ff" stroke-opacity="0.4" stroke-width="2" fill="none"/>
+
+  <!-- Small dots on ring -->
+  <circle cx="256" cy="36" r="4" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="256" cy="476" r="4" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="36" cy="256" r="4" fill="#00d4ff" opacity="0.6"/>
+  <circle cx="476" cy="256" r="4" fill="#00d4ff" opacity="0.6"/>
+</svg>

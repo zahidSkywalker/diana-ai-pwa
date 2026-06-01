@@ -1,0 +1,227 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.07 0.005 160);
+  --foreground: oklch(0.95 0.01 160);
+  --card: oklch(0.11 0.008 160);
+  --card-foreground: oklch(0.95 0.01 160);
+  --popover: oklch(0.11 0.008 160);
+  --popover-foreground: oklch(0.95 0.01 160);
+  --primary: oklch(0.72 0.19 162);
+  --primary-foreground: oklch(0.07 0.005 160);
+  --secondary: oklch(0.15 0.01 160);
+  --secondary-foreground: oklch(0.95 0.01 160);
+  --muted: oklch(0.15 0.01 160);
+  --muted-foreground: oklch(0.6 0.02 160);
+  --accent: oklch(0.18 0.03 162);
+  --accent-foreground: oklch(0.95 0.01 160);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.25 0.02 160);
+  --input: oklch(0.2 0.015 160);
+  --ring: oklch(0.72 0.19 162);
+  --chart-1: oklch(0.72 0.19 162);
+  --chart-2: oklch(0.65 0.17 150);
+  --chart-3: oklch(0.6 0.15 170);
+  --chart-4: oklch(0.55 0.12 140);
+  --chart-5: oklch(0.78 0.14 165);
+  --sidebar: oklch(0.08 0.006 160);
+  --sidebar-foreground: oklch(0.95 0.01 160);
+  --sidebar-primary: oklch(0.72 0.19 162);
+  --sidebar-primary-foreground: oklch(0.07 0.005 160);
+  --sidebar-accent: oklch(0.15 0.02 162);
+  --sidebar-accent-foreground: oklch(0.95 0.01 160);
+  --sidebar-border: oklch(0.22 0.015 160);
+  --sidebar-ring: oklch(0.72 0.19 162);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.3 0.02 160);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.4 0.03 160);
+}
+
+/* No scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glow effects */
+.glow-emerald {
+  box-shadow: 0 0 15px oklch(0.72 0.19 162 / 0.12),
+              0 0 30px oklch(0.72 0.19 162 / 0.04);
+}
+
+.glow-emerald-strong {
+  box-shadow: 0 0 15px oklch(0.72 0.19 162 / 0.25),
+              0 0 40px oklch(0.72 0.19 162 / 0.08);
+}
+
+.text-glow {
+  text-shadow: 0 0 15px oklch(0.72 0.19 162 / 0.4);
+}
+
+/* Glass morphism */
+.glass {
+  background: oklch(0.12 0.01 160 / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(0.3 0.02 160 / 0.3);
+}
+
+/* Typing animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '\25CB';
+  animation: blink 1s infinite;
+  color: oklch(0.72 0.19 162);
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+/* Pulse ring for active items */
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 oklch(0.72 0.19 162 / 0.4); }
+  70% { box-shadow: 0 0 0 5px oklch(0.72 0.19 162 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.72 0.19 162 / 0); }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
+
+/* Smooth transitions */
+.module-transition {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Safe area for mobile bottom bar */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-input {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px);
+}
+
+/* Markdown content styling - compact */
+.markdown-content h1 { @apply text-lg font-bold mb-2 mt-4; }
+.markdown-content h2 { @apply text-base font-bold mb-1.5 mt-3; }
+.markdown-content h3 { @apply text-sm font-semibold mb-1 mt-2; }
+.markdown-content p { @apply mb-2 leading-relaxed; }
+.markdown-content ul { @apply list-disc pl-5 mb-2 space-y-0.5; }
+.markdown-content ol { @apply list-decimal pl-5 mb-2 space-y-0.5; }
+.markdown-content li { @apply leading-relaxed; }
+.markdown-content code { @apply bg-primary/10 text-primary px-1 py-0.5 rounded text-xs font-mono; }
+.markdown-content pre { @apply bg-black/30 rounded-lg p-3 mb-2 overflow-x-auto text-xs; }
+.markdown-content pre code { @apply bg-transparent p-0 text-foreground; }
+.markdown-content blockquote { @apply border-l-2 border-primary/50 pl-3 italic text-muted-foreground mb-2; }
+.markdown-content strong { @apply font-bold text-foreground; }
+.markdown-content table { @apply w-full mb-2 border-collapse text-xs; }
+.markdown-content th { @apply border-b border-border px-2 py-1.5 text-left font-semibold; }
+.markdown-content td { @apply border-b border-border/50 px-2 py-1.5; }
+
+/* Mobile input fixes - prevent zoom */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Make inputs look right at 16px while keeping compact feel */
+  textarea {
+    line-height: 1.3;
+  }
+}
+
+/* Prevent iOS bounce overscroll */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix dvh for older browsers */
+@supports not (height: 100dvh) {
+  .\[h-screen\] {
+    height: 100vh;
+  }
+}
