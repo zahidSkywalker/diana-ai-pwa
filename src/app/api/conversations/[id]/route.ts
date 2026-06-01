@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { updateConversationTitle } from '@/lib/supabase-server';
 
 export async function PATCH(
   request: NextRequest,
@@ -11,10 +11,7 @@ export async function PATCH(
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
-    await db.conversation.update({
-      where: { id },
-      data: { title },
-    });
+    await updateConversationTitle(id, title);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Conversation PATCH error:', error);

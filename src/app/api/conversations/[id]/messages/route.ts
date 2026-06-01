@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import {
+  getMessages as sbGetMessages,
+  saveMessage as sbSaveMessage,
+} from '@/lib/supabase-server';
 
 export async function GET(
   _request: NextRequest,
@@ -7,10 +10,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const messages = await db.message.findMany({
-      where: { conversationId: id },
-      orderBy: { createdAt: 'asc' },
-    });
+    const messages = await sbGetMessages(id);
     return NextResponse.json(messages);
   } catch (error) {
     console.error('Messages GET error:', error);
@@ -28,14 +28,18 @@ export async function POST(
     if (!role || !content) {
       return NextResponse.json({ error: 'Role and content are required' }, { status: 400 });
     }
-    const message = await db.message.create({
-      data: {
-        conversationId: id,
-        role,
-        content,
-        attachments: attachments ? JSON.stringify(attachments) : '[]',
-      },
-    });
+
+    await sbSaveMessage(id, role, content);
+
+    const message = {
+      id: `msg-${Date.now()}`,
+      conversationId: id,
+      role,
+      content,
+      attachments: attachments ? JSON.stringify(attachments) : '[]',
+      createdAt: new Date().toISOString(),
+    };
+
     return NextResponse.json(message);
   } catch (error) {
     console.error('Message POST error:', error);
