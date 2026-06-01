@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mistralChat, createSSEStream } from '@/lib/mistral';
+import { geminiChat, createSSEStream } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +21,7 @@ Be concise and directly useful. Format responses in markdown when appropriate.`;
       })),
     ];
 
-    const response = await mistralChat(allMessages, true);
+    const response = await geminiChat(allMessages, true);
     const stream = createSSEStream(response as Response);
 
     return new Response(stream, {

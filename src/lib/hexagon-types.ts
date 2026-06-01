@@ -46,43 +46,22 @@ export interface DiscordMessage {
 
 export const AVAILABLE_MODELS: AIModel[] = [
   {
-    id: 'glm-4-flash',
-    name: 'GLM-4 Flash',
-    description: 'Fast and efficient, great for general tasks',
-    provider: 'zhipu',
+    id: 'gemini-2.0-flash',
+    name: 'Gemini 2.0 Flash',
+    description: 'Fast and intelligent, great for general tasks',
+    provider: 'google',
     tier: 'free',
   },
   {
-    id: 'glm-4-plus',
-    name: 'GLM-4 Plus',
-    description: 'Enhanced reasoning and creativity',
-    provider: 'zhipu',
-    tier: 'paid',
-  },
-  {
-    id: 'glm-4-long',
-    name: 'GLM-4 Long',
-    description: 'Extended context window for long conversations',
-    provider: 'zhipu',
-    tier: 'paid',
-  },
-  {
-    id: 'mistral-small',
-    name: 'Mistral Small',
-    description: 'Fast and capable, good for coding & analysis',
-    provider: 'mistral',
+    id: 'gemini-1.5-pro',
+    name: 'Gemini 1.5 Pro',
+    description: 'Enhanced reasoning and long context',
+    provider: 'google',
     tier: 'free',
-  },
-  {
-    id: 'mistral-medium',
-    name: 'Mistral Medium',
-    description: 'Balanced performance for complex tasks',
-    provider: 'mistral',
-    tier: 'paid',
   },
 ];
 
-export const DEFAULT_MODEL = 'mistral-small';
+export const DEFAULT_MODEL = 'gemini-2.0-flash';
 
 export const SYSTEM_PROMPT = `You are HexaGon AI, a versatile and intelligent AI assistant created to help users with a wide range of tasks. You can assist with:
 

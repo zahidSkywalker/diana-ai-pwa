@@ -20,8 +20,8 @@ interface ModelSelectorProps {
 }
 
 const modelIcons: Record<string, React.ReactNode> = {
-  glm: <Crown className="h-3 w-3" />,
-  mistral: <Sparkles className="h-3 w-3" />,
+  zhipu: <Crown className="h-3 w-3" />,
+  google: <Sparkles className="h-3 w-3" />,
 };
 
 const tierIcons: Record<string, React.ReactNode> = {

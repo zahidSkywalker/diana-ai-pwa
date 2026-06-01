@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mistralChat } from '@/lib/mistral';
+import { geminiChat } from '@/lib/gemini';
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    const completion = await mistralChat([
+    const completion = await geminiChat([
       {
         role: 'system',
         content: `You are a structured book content generator. Generate a comprehensive book outline with 5-8 chapters for the given topic.

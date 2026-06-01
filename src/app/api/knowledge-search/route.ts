@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mistralChat } from '@/lib/mistral';
+import { geminiChat } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     let context = providedContext || 'No knowledge base content available.';
 
-    const completion = await mistralChat([
+    const completion = await geminiChat([
       {
         role: 'system',
         content: `You are Diana AI, a knowledge assistant. Answer questions based on the provided knowledge base content. If the answer is not in the knowledge base, say so. Use markdown formatting.`,

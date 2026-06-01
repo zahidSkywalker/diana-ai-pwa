@@ -1,36 +1,27 @@
-// HexaGon AI — GLM-4 / Mistral API helper using OpenAI-compatible format
+// HexaGon AI — Gemini API helper (Diana's brain)
+// Unified Gemini backend for all AI operations
 
 import { ChatMessage, SYSTEM_PROMPT, DEFAULT_MODEL } from './hexagon-types';
 
-const GLM_API_URL = process.env.GLM_API_URL || 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-const GLM_API_KEY = process.env.GLM_API_KEY || '';
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || '0nmyNyMGwClhJWXFIimzDVM4ZjZD67Ni';
-const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBrbaZCpCwYcX0Wot1CyI-yF7Sr0brZc30';
+const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 
 interface APIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-function getEndpoint(model: string): { url: string; apiKey: string; mappedModel: string } {
-  if (model.startsWith('glm-')) {
-    if (!GLM_API_KEY) {
-      throw new Error('GLM_API_KEY is not configured. Falling back to Mistral.');
-    }
-    return { url: GLM_API_URL, apiKey: GLM_API_KEY, mappedModel: model };
-  }
-  if (!MISTRAL_API_KEY) {
-    throw new Error('No AI API key configured. Please set GLM_API_KEY or MISTRAL_API_KEY.');
-  }
+function getModel(model: string): string {
   const modelMap: Record<string, string> = {
-    'mistral-small': 'mistral-small-latest',
-    'mistral-medium': 'mistral-medium-latest',
+    'gemini-flash': 'gemini-2.0-flash',
+    'gemini-pro': 'gemini-1.5-pro',
+    'gemini-2.0-flash': 'gemini-2.0-flash',
+    'gemini-1.5-pro': 'gemini-1.5-pro',
+    'glm-4-flash': 'gemini-2.0-flash',
+    'glm-4-plus': 'gemini-1.5-pro',
+    'glm-4-long': 'gemini-1.5-pro',
   };
-  return {
-    url: MISTRAL_API_URL,
-    apiKey: MISTRAL_API_KEY,
-    mappedModel: modelMap[model] || 'mistral-small-latest',
-  };
+  return modelMap[model] || DEFAULT_MODEL;
 }
 
 export async function sendChatMessage(
@@ -38,35 +29,40 @@ export async function sendChatMessage(
   model: string = DEFAULT_MODEL,
   systemPrompt: string = SYSTEM_PROMPT,
 ): Promise<Response> {
-  const { url, apiKey, mappedModel } = getEndpoint(model);
+  const resolvedModel = getModel(model);
+  const chatMessages = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
 
-  const apiMessages: APIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    ...messages.map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    })),
-  ];
+  const body: Record<string, unknown> = {
+    contents: chatMessages,
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+    },
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+    ],
+  };
+
+  const url = `${GEMINI_BASE_URL}/models/${resolvedModel}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: mappedModel,
-      messages: apiMessages,
-      temperature: 0.7,
-      max_tokens: 4096,
-      stream: true,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`AI API error (${response.status}):`, errorText);
-    throw new Error(`AI API returned ${response.status}: ${errorText}`);
+    console.error(`Gemini API error (${response.status}):`, errorText);
+    throw new Error(`Gemini API returned ${response.status}: ${errorText}`);
   }
 
   return response;
@@ -105,7 +101,7 @@ export function createSSEStream(response: Response): ReadableStream {
 
             try {
               const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
+              const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
               if (content) {
                 controller.enqueue(
                   encoder.encode(`data: ${JSON.stringify({ content })}\n\n`),
@@ -131,36 +127,42 @@ export async function sendChatMessageNonStream(
   model: string = DEFAULT_MODEL,
   systemPrompt: string = SYSTEM_PROMPT,
 ): Promise<string> {
-  const { url, apiKey, mappedModel } = getEndpoint(model);
+  const resolvedModel = getModel(model);
+  const chatMessages = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
 
-  const apiMessages: APIMessage[] = [
-    { role: 'system', content: systemPrompt },
-    ...messages.map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    })),
-  ];
+  const body: Record<string, unknown> = {
+    contents: chatMessages,
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: {
+      temperature: 0.7,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+    },
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+    ],
+  };
+
+  const url = `${GEMINI_BASE_URL}/models/${resolvedModel}:generateContent?key=${GEMINI_API_KEY}`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: mappedModel,
-      messages: apiMessages,
-      temperature: 0.7,
-      max_tokens: 4096,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`AI API error (${response.status}):`, errorText);
-    throw new Error(`AI API returned ${response.status}: ${errorText}`);
+    console.error(`Gemini API error (${response.status}):`, errorText);
+    throw new Error(`Gemini API returned ${response.status}: ${errorText}`);
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
