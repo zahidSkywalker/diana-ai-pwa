@@ -26,10 +26,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Build prompt from messages for Diana
+    // Build prompt from messages for Echo
     const history = messages
       .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Zenith' : 'User'}: ${m.content}`)
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
       .join('\n');
 
     const response = await bridgeChat(history);

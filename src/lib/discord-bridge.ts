@@ -1,11 +1,18 @@
-// Diana AI — Discord Bridge
-// Routes PWA chat messages through Discord so Diana bot can respond
-// Architecture: PWA → API Route → Echo bot sends message → Diana Bot responds → Poll for response → Stream back
+// Echo AI — Discord Bridge
+// Users chat in the PWA. Behind the scenes, messages go through Echo's Discord channel.
+// Echo's AI brain (z.ai gateway) processes the message and responds.
+// The PWA reads Echo's response and streams it back. Users never see Discord.
+//
+// Architecture:
+//   PWA → API Route → webhook sends as "User" → Echo's gateway processes → Echo responds → PWA polls → SSE stream back
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || '';
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID || '1511044432873656412';
-// Diana bot ID — the bot that actually responds to messages
-const DIANA_BOT_ID = process.env.DIANA_BOT_ID || '1497889229601247283';
+
+// Echo's bot ID — derived from token (first segment is base64 bot ID)
+const ECHO_BOT_ID = DISCORD_BOT_TOKEN
+  ? Buffer.from(DISCORD_BOT_TOKEN.split('.')[0], 'base64').toString()
+  : '1503694342634606682';
 
 interface DiscordMessage {
   id: string;
@@ -25,7 +32,7 @@ function botHeaders(): Record<string, string> {
   return {
     Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
     'Content-Type': 'application/json',
-    'User-Agent': 'DianaAI-PWA-Bridge/1.0',
+    'User-Agent': 'Echo-AI-PWA-Bridge/1.0',
   };
 }
 
@@ -33,19 +40,74 @@ function isConfigured(): boolean {
   return !!(DISCORD_BOT_TOKEN && DISCORD_CHANNEL_ID);
 }
 
+// Cached webhook info (reused across requests)
+let cachedWebhook: { id: string; token: string } | null = null;
+
 /**
- * Send user message as Echo bot directly in the channel
- * Diana bot sees it and responds
+ * Get or create a webhook in the bridge channel.
+ * Webhook messages appear as real user messages (not bot), so the
+ * z.ai gateway picks them up and Echo responds naturally.
  */
-export async function sendBridgeMessage(content: string): Promise<string | null> {
+async function ensureWebhook(): Promise<{ id: string; token: string } | null> {
   if (!isConfigured()) return null;
+  if (cachedWebhook) return cachedWebhook;
 
   try {
-    const res = await fetch(`${BASE}/channels/${DISCORD_CHANNEL_ID}/messages`, {
+    // Look for existing "Echo Bridge" webhook
+    const res = await fetch(`${BASE}/channels/${DISCORD_CHANNEL_ID}/webhooks`, {
+      headers: botHeaders(),
+    });
+
+    if (res.ok) {
+      const webhooks: Array<{ id: string; token: string; name: string }> = await res.json();
+      const existing = webhooks.find(w => w.name === 'Echo Bridge');
+      if (existing) {
+        cachedWebhook = { id: existing.id, token: existing.token };
+        return cachedWebhook;
+      }
+    }
+
+    // Create new webhook
+    const createRes = await fetch(`${BASE}/channels/${DISCORD_CHANNEL_ID}/webhooks`, {
       method: 'POST',
       headers: botHeaders(),
+      body: JSON.stringify({ name: 'Echo Bridge' }),
+    });
+
+    if (createRes.ok) {
+      const webhook = await createRes.json();
+      cachedWebhook = { id: webhook.id, token: webhook.token };
+      return cachedWebhook;
+    }
+
+    console.error('Webhook creation failed:', await createRes.text());
+    return null;
+  } catch (error) {
+    console.error('Webhook setup error:', error);
+    return null;
+  }
+}
+
+/**
+ * Send user message via webhook (appears as "PWA User", not a bot).
+ * The z.ai gateway treats this as a user message and Echo responds.
+ */
+async function sendViaWebhook(content: string): Promise<string | null> {
+  const webhook = await ensureWebhook();
+  if (!webhook) {
+    console.error('Discord bridge: no webhook available');
+    return null;
+  }
+
+  try {
+    const url = `${BASE}/webhooks/${webhook.id}/${webhook.token}?wait=true`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         content: content.substring(0, 2000),
+        username: 'PWA User',
+        avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png',
       }),
     });
 
@@ -54,18 +116,18 @@ export async function sendBridgeMessage(content: string): Promise<string | null>
       return msg.id;
     }
 
-    console.error('Bridge send failed:', await res.text());
+    console.error('Webhook send failed:', await res.text());
     return null;
   } catch (error) {
-    console.error('Bridge send error:', error);
+    console.error('Webhook send error:', error);
     return null;
   }
 }
 
 /**
- * Poll for Diana bot's response after our message
+ * Poll for Echo bot's response after our webhook message
  */
-export async function pollForDianaResponse(
+async function pollForResponse(
   afterMessageId: string,
   timeoutMs: number = 60000,
   pollIntervalMs: number = 2000
@@ -87,11 +149,10 @@ export async function pollForDianaResponse(
       const messages: DiscordMessage[] = await res.json();
 
       for (const msg of messages) {
-        if (msg.author.bot && msg.author.id === DIANA_BOT_ID) {
-          // Diana responded!
+        if (msg.author.bot && msg.author.id === ECHO_BOT_ID) {
           let fullResponse = msg.content;
 
-          // Check for follow-up messages
+          // Collect follow-up messages (Echo may split long responses)
           const laterMessages = await fetchLaterMessages(msg.id, timeoutMs - (Date.now() - startTime));
           for (const later of laterMessages) {
             fullResponse += '\n\n' + later;
@@ -129,7 +190,7 @@ async function fetchLaterMessages(
 
       const messages: DiscordMessage[] = await res.json();
       const botMessages = messages.filter(
-        m => m.author.bot && m.author.id === DIANA_BOT_ID
+        m => m.author.bot && m.author.id === ECHO_BOT_ID
       );
 
       if (botMessages.length === 0) break;
@@ -147,37 +208,39 @@ async function fetchLaterMessages(
 }
 
 /**
- * Full bridge flow: send message via Echo bot, poll for Diana's response
+ * Full bridge flow:
+ * 1. Send user message via webhook (appears as "PWA User")
+ * 2. Echo's gateway processes and responds
+ * 3. Poll for Echo's response
+ * 4. Return response text
  */
 export async function bridgeChat(userMessage: string): Promise<string | null> {
-  // Step 1: Send user message as Echo bot
-  const messageId = await sendBridgeMessage(userMessage);
+  const messageId = await sendViaWebhook(userMessage);
   if (!messageId) {
-    console.error('Discord bridge: failed to send message');
+    console.error('Discord bridge: failed to send webhook message');
     return null;
   }
 
-  console.log(`Discord bridge: message sent (${messageId}), polling for Diana's response...`);
+  console.log(`Discord bridge: webhook sent (${messageId}), polling for Echo...`);
 
-  // Step 2: Poll for Diana's response
-  const response = await pollForDianaResponse(messageId);
+  const response = await pollForResponse(messageId);
   if (!response) {
-    console.error('Discord bridge: timed out waiting for Diana');
+    console.error('Discord bridge: timed out waiting for Echo');
     return null;
   }
 
-  console.log(`Discord bridge: Diana responded (${response.length} chars)`);
+  console.log(`Discord bridge: Echo responded (${response.length} chars)`);
   return response;
 }
 
 export function getBridgeStatus(): {
   configured: boolean;
   channelId: string;
-  dianaBotId: string;
+  botId: string;
 } {
   return {
     configured: isConfigured(),
     channelId: DISCORD_CHANNEL_ID,
-    dianaBotId: DIANA_BOT_ID,
+    botId: ECHO_BOT_ID,
   };
 }

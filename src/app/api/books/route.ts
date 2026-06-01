@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const status = getBridgeStatus();
     if (!status.configured) {
-      return NextResponse.json({ error: 'Diana is being configured. Please try again shortly.' }, { status: 503 });
+      return NextResponse.json({ error: 'Echo is being configured. Please try again shortly.' }, { status: 503 });
     }
 
     const prompt = `[Generate a book]: Generate a comprehensive book outline with 5-8 chapters about: ${topic}${title ? `. Suggested title: ${title}` : ''}.

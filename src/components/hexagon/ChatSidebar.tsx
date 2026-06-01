@@ -234,7 +234,7 @@ export function ChatSidebar({
         {/* Footer */}
         <div className="p-3 border-t border-border/30">
           <p className="text-[10px] text-muted-foreground/30 text-center">
-            Powered by Diana AI — Discord Bridge
+            Powered by Echo AI — Discord Bridge
           </p>
         </div>
       </aside>

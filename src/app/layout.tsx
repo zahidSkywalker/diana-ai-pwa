@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Diana AI — Advanced AI Assistant",
-  description: "Diana AI is an intelligent, creative, and versatile AI assistant for coding, research, writing, analysis, math, and much more.",
-  keywords: ["Diana AI", "AI", "Assistant", "Chat", "Productivity"],
+  title: "Echo AI — Advanced AI Assistant",
+  description: "Echo AI is an intelligent, creative, and versatile AI assistant for coding, research, writing, analysis, math, and much more.",
+  keywords: ["Echo AI", "AI", "Assistant", "Chat", "Productivity"],
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.png",

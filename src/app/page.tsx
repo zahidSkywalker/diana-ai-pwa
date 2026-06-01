@@ -138,7 +138,7 @@ function ChatMessage({ message }: { message: Message }) {
         {/* Name & time */}
         <div className={cn('flex items-center gap-2 mb-1', isUser ? 'flex-row-reverse' : '')}>
           <span className="text-xs font-semibold text-foreground/80">
-            {isUser ? 'You' : 'Diana AI'}
+            {isUser ? 'You' : 'Echo AI'}
           </span>
           <span className="text-[10px] text-muted-foreground">{timeStr}</span>
         </div>
@@ -193,7 +193,7 @@ function TypingIndicator() {
           <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
           <span className="h-2 w-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-        <span className="text-xs text-muted-foreground ml-1">Diana is thinking...</span>
+        <span className="text-xs text-muted-foreground ml-1">Echo is thinking...</span>
       </div>
     </motion.div>
   );
@@ -280,7 +280,7 @@ function SidebarContent({
             <Sparkles className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-foreground">Diana AI</h1>
+            <h1 className="text-sm font-bold text-foreground">Echo AI</h1>
             <p className="text-[10px] text-muted-foreground">Advanced Assistant</p>
           </div>
         </div>
@@ -339,7 +339,7 @@ function SidebarContent({
       {/* Footer */}
       <div className="p-3 border-t border-border/50">
         <p className="text-[10px] text-muted-foreground/60 text-center">
-          Diana AI by Zahidul Islam
+          Echo AI by Zahidul Islam
         </p>
       </div>
     </div>
@@ -514,7 +514,7 @@ export default function Home() {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold truncate">
-                {activeConversation?.title || 'Diana AI'}
+                {activeConversation?.title || 'Echo AI'}
               </h2>
               <p className="text-[10px] text-muted-foreground">
                 {isStreaming ? 'Responding...' : activeConversation ? 'Chat active' : 'Start a new conversation'}
@@ -537,7 +537,7 @@ export default function Home() {
                 <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mx-auto mb-4 glow-emerald">
                   <Sparkles className="h-10 w-10 text-primary-foreground" />
                 </div>
-                <h2 className="text-xl font-bold mb-2">Welcome to Diana AI</h2>
+                <h2 className="text-xl font-bold mb-2">Welcome to Echo AI</h2>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   Your advanced AI assistant. Ask me about coding, research, writing, analysis, or anything else.
                   Upload files for analysis.
@@ -585,7 +585,7 @@ export default function Home() {
                       </div>
                       <div className="flex flex-col max-w-[75%] md:max-w-[65%]">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold text-foreground/80">Diana AI</span>
+                          <span className="text-xs font-semibold text-foreground/80">Echo AI</span>
                         </div>
                         <div className="rounded-xl px-4 py-2.5 bg-card border border-border/50">
                           <div className="markdown-content text-sm leading-relaxed text-foreground/95">
@@ -714,7 +714,7 @@ export default function Home() {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isStreaming ? 'Diana is responding...' : 'Message Diana AI...'}
+                placeholder={isStreaming ? 'Echo is responding...' : 'Message Echo AI...'}
                 disabled={isStreaming}
                 rows={1}
                 className="w-full resize-none rounded-xl bg-secondary/50 border border-border/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 disabled:opacity-50 transition-colors"

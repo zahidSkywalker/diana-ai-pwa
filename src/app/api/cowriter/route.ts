@@ -20,9 +20,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Build prompt for Diana
+    // Build prompt for Echo
     const chatHistory = messages
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Diana' : 'User'}: ${m.content}`)
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
       .join('\n');
 
     const prompt = `[You are JARVIS Co-Writer]: Help with writing, editing, and improving documents. Be concise and useful. Format in markdown.\n\n${chatHistory}`;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
 
-const CLI_TOKEN = process.env.DIANA_CLI_TOKEN || 'diana-cli-2026-auth';
+const CLI_TOKEN = process.env.ECHO_CLI_TOKEN || 'echo-cli-2026-auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
     const status = getBridgeStatus();
     if (!status.configured) {
       return NextResponse.json({
-        content: "Diana's Discord bridge is being configured. Please try again shortly.",
+        content: "Echo's Discord bridge is being configured. Please try again shortly.",
         sessionId: sessionId || null,
         timestamp: new Date().toISOString(),
-        model: 'diana-discord',
+        model: 'echo-discord',
         usage: null,
       });
     }
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // Build prompt from messages
     const history = messages
       .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Diana' : 'User'}: ${m.content}`)
+      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
       .join('\n');
 
     const response = await bridgeChat(history);
@@ -40,12 +40,12 @@ export async function POST(req: NextRequest) {
       content: messageContent,
       sessionId: sessionId || null,
       timestamp: new Date().toISOString(),
-      model: 'diana-discord',
+      model: 'echo-discord',
       usage: null,
     });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Diana CLI API error:', msg);
+    console.error('Echo CLI API error:', msg);
     return NextResponse.json(
       { error: 'Failed to process request', details: msg },
       { status: 500 }
@@ -57,7 +57,7 @@ export async function GET() {
   const status = getBridgeStatus();
   return NextResponse.json({
     status: status.configured ? 'online' : 'configuring',
-    service: 'Diana CLI Relay',
+    service: 'Echo CLI Relay',
     version: '2.0.0',
     bridge: status,
     timestamp: new Date().toISOString(),

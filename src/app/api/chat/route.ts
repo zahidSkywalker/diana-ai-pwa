@@ -29,7 +29,7 @@ function createTextSSEStream(text: string) {
   });
 }
 
-// ─── Stream Diana's Discord bridge response as SSE ──────
+// ─── Stream Echo's Discord bridge response as SSE ──────
 function createBridgeSSEStream(text: string) {
   return createTextSSEStream(text);
 }
@@ -66,14 +66,14 @@ export async function POST(req: NextRequest) {
     // Build context from conversation history (exclude last user message)
     const history = messages
       .filter((m: ChatMessage) => m.role !== 'system' && m !== lastUserMsg)
-      .map((m: ChatMessage) => `${m.role === 'assistant' ? 'Diana' : 'User'}: ${m.content}`)
+      .map((m: ChatMessage) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
       .join('\n');
 
     const fullMessage = history
       ? `[Conversation context]:\n${history}\n\n[Current message]: ${lastUserMsg.content}`
       : lastUserMsg.content;
 
-    // Send through Discord bridge — Diana's actual brain
+    // Send through Discord bridge — Echo's AI brain
     const response = await bridgeChat(fullMessage);
 
     if (!response) {
@@ -108,7 +108,7 @@ export async function GET() {
   const status = getBridgeStatus();
   return NextResponse.json({
     status: status.configured ? 'online' : 'configuring',
-    service: 'Diana AI Chat',
+    service: 'Echo AI Chat',
     version: '2.0.0',
     bridge: status,
     timestamp: new Date().toISOString(),

@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const status = getBridgeStatus();
     if (!status.configured) {
       return NextResponse.json({
-        answer: "Diana's knowledge system is being configured. Please try again shortly.",
+        answer: "Echo's knowledge system is being configured. Please try again shortly.",
       });
     }
 

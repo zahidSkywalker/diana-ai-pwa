@@ -46,15 +46,15 @@ export interface DiscordMessage {
 
 export const AVAILABLE_MODELS: AIModel[] = [
   {
-    id: 'diana-discord',
-    name: 'Diana AI',
-    description: 'Diana responds through Discord bridge',
+    id: 'echo-discord',
+    name: 'Echo AI',
+    description: 'Echo responds through Discord bridge',
     provider: 'discord',
     tier: 'free',
   },
 ];
 
-export const DEFAULT_MODEL = 'diana-discord';
+export const DEFAULT_MODEL = 'echo-discord';
 
 export const SYSTEM_PROMPT = `You are HexaGon AI, a versatile and intelligent AI assistant created to help users with a wide range of tasks. You can assist with:
 
