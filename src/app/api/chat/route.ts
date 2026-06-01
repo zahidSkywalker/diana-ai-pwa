@@ -11,7 +11,7 @@ interface ChatMessage {
   content: string;
 }
 
-// ─── SSE stream from Gemini's streamGenerateContent ───────────────
+// ─── Gemini SSE stream (Diana's brain via authorization token) ──────
 function createGeminiSSEStream(messages: ChatMessage[]): ReadableStream {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -52,8 +52,14 @@ function createGeminiSSEStream(messages: ChatMessage[]): ReadableStream {
         if (!response.ok || !response.body) {
           const errorText = await response.text().catch(() => 'Unknown error');
           console.error(`Gemini API error (${response.status}):`, errorText);
-          const errorMsg = 'I encountered a brief issue. Please try again in a moment.';
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: errorMsg })}\n\n`));
+          // Quota exhausted — friendly message
+          if (response.status === 429) {
+            const quotaMsg = "I'm currently at capacity — my brain needs a brief rest. Please try again in a few minutes.";
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: quotaMsg })}\n\n`));
+          } else {
+            const errorMsg = 'I encountered a brief issue. Please try again in a moment.';
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: errorMsg })}\n\n`));
+          }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
           return;
@@ -138,7 +144,7 @@ export async function POST(req: NextRequest) {
       content: m.content,
     }));
 
-    // Primary: Diana's brain via Gemini (streaming)
+    // Diana's brain: Gemini API (authorization token approach)
     if (GEMINI_API_KEY) {
       const sseStream = createGeminiSSEStream(allMessages);
       return new Response(sseStream, {
@@ -150,9 +156,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Fallback: static response if no API key configured
+    // No AI backend configured
     const fallbackResponse =
-      "Hello! I'm Diana AI. My brain is being configured — please set the GEMINI_API_KEY environment variable. Try again in a moment!";
+      "Hello! I'm Diana AI. My brain is currently being configured. Please set the GEMINI_API_KEY environment variable to activate me.";
     return new Response(createTextSSEStream(fallbackResponse), {
       headers: {
         'Content-Type': 'text/event-stream',
