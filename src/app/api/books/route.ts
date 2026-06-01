@@ -3,14 +3,7 @@ import { mistralChat } from '@/lib/mistral';
 
 export async function GET() {
   try {
-    const { db } = await import('@/lib/db');
-    const books = await db.book.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        chapters: { orderBy: { order: 'asc' } },
-      },
-    });
-    return NextResponse.json(books);
+    return NextResponse.json([]);
   } catch (error) {
     console.error('GET books error:', error);
     return NextResponse.json([]);
@@ -20,12 +13,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { topic, title } = await req.json();
-
     if (!topic) {
       return NextResponse.json({ error: 'Topic is required' }, { status: 400 });
     }
 
-    // Generate book structure with Mistral AI
     const completion = await mistralChat([
       {
         role: 'system',
@@ -50,40 +41,20 @@ Ensure the content is educational, well-structured, and uses markdown formatting
       return NextResponse.json({ error: 'Failed to generate book structure. Please try again.' }, { status: 500 });
     }
 
-    try {
-      const { db } = await import('@/lib/db');
-      const book = await db.book.create({
-        data: {
-          title: bookData.title || title || topic,
-          topic: topic,
-          chapters: {
-            create: (bookData.chapters || []).map((ch: any, i: number) => ({
-              title: ch.title || `Chapter ${i + 1}`,
-              content: ch.content || '',
-              order: i,
-            })),
-          },
-        },
-        include: { chapters: { orderBy: { order: 'asc' } } },
-      });
-      return NextResponse.json(book);
-    } catch {
-      // Fallback for serverless: return generated book without saving
-      const bookId = crypto.randomUUID ? crypto.randomUUID() : `book_${Date.now()}`;
-      return NextResponse.json({
-        id: bookId,
-        title: bookData.title || title || topic,
-        topic: topic,
-        progress: 0,
-        createdAt: new Date().toISOString(),
-        chapters: (bookData.chapters || []).map((ch: any, i: number) => ({
-          id: `${bookId}_ch_${i}`,
-          title: ch.title || `Chapter ${i + 1}`,
-          content: ch.content || '',
-          order: i,
-        })),
-      });
-    }
+    const bookId = crypto.randomUUID ? crypto.randomUUID() : `book_${Date.now()}`;
+    return NextResponse.json({
+      id: bookId,
+      title: bookData.title || title || topic,
+      topic: topic,
+      progress: 0,
+      createdAt: new Date().toISOString(),
+      chapters: (bookData.chapters || []).map((ch: any, i: number) => ({
+        id: `${bookId}_ch_${i}`,
+        title: ch.title || `Chapter ${i + 1}`,
+        content: ch.content || '',
+        order: i,
+      })),
+    });
   } catch (error) {
     console.error('POST books error:', error);
     return NextResponse.json({ error: 'Failed to create book' }, { status: 500 });
@@ -92,13 +63,6 @@ Ensure the content is educational, well-structured, and uses markdown formatting
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'Book ID required' }, { status: 400 });
-    try {
-      const { db } = await import('@/lib/db');
-      await db.book.delete({ where: { id } });
-    } catch {}
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('DELETE book error:', error);

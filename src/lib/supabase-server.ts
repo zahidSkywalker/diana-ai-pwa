@@ -17,12 +17,14 @@ const HEADERS: Record<string, string> = {
   'Authorization': `Bearer ${SUPABASE_KEY}`,
 }
 
-function sbFetch(path: string, options: RequestInit = {}) {
+export function sbFetch(path: string, options: RequestInit = {}) {
   return fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
     headers: { ...HEADERS, ...(options.headers as Record<string, string>) },
   })
 }
+
+export { HEADERS }
 
 interface Conversation {
   id: string
