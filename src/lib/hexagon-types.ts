@@ -32,29 +32,19 @@ export interface ChatRequest {
   stream?: boolean;
 }
 
-export interface DiscordMessage {
-  id: string;
-  content: string;
-  author: {
-    id: string;
-    username: string;
-    bot: boolean;
-  };
-  timestamp: string;
-  channel_id: string;
-}
+
 
 export const AVAILABLE_MODELS: AIModel[] = [
   {
-    id: 'echo-discord',
+    id: 'echo-direct',
     name: 'Echo AI',
-    description: 'Echo responds through Discord bridge',
-    provider: 'discord',
+    description: 'Echo AI — direct connection',
+    provider: 'z-ai',
     tier: 'free',
   },
 ];
 
-export const DEFAULT_MODEL = 'echo-discord';
+export const DEFAULT_MODEL = 'echo-direct';
 
 export const SYSTEM_PROMPT = `You are HexaGon AI, a versatile and intelligent AI assistant created to help users with a wide range of tasks. You can assist with:
 

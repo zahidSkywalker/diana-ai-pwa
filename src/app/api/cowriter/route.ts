@@ -1,33 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
+import { aiChat, getEngineStatus } from '@/lib/ai-engine';
+
+const SYSTEM_PROMPT = `You are Echo AI Co-Writer. Help with writing, editing, and improving documents. Be concise and useful. Format in markdown.`;
 
 export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    const status = getBridgeStatus();
-    if (!status.configured) {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        start(controller) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: "Co-Writer is being configured. Please try again shortly." })}\n\n`));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-          controller.close();
-        },
-      });
-      return new Response(stream, {
-        headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' },
-      });
-    }
+    const aiMessages = messages
+      .map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
 
-    // Build prompt for Echo
-    const chatHistory = messages
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
-      .join('\n');
-
-    const prompt = `[You are JARVIS Co-Writer]: Help with writing, editing, and improving documents. Be concise and useful. Format in markdown.\n\n${chatHistory}`;
-
-    const response = await bridgeChat(prompt);
+    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
 
     // Simulate streaming
     const text = response || 'I could not process your request.';

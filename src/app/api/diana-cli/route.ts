@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
+import { aiChat, getEngineStatus } from '@/lib/ai-engine';
 
 const CLI_TOKEN = process.env.ECHO_CLI_TOKEN || 'echo-cli-2026-auth';
+
+const SYSTEM_PROMPT = `You are Echo AI, a versatile assistant. Help with any task the user requests. Be concise and direct.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,31 +18,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    const status = getBridgeStatus();
-    if (!status.configured) {
-      return NextResponse.json({
-        content: "Echo's Discord bridge is being configured. Please try again shortly.",
-        sessionId: sessionId || null,
-        timestamp: new Date().toISOString(),
-        model: 'echo-discord',
-        usage: null,
-      });
-    }
-
-    // Build prompt from messages
-    const history = messages
+    const aiMessages = messages
       .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
-      .join('\n');
+      .map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
 
-    const response = await bridgeChat(history);
-    const messageContent = response || 'No response generated.';
+    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
 
     return NextResponse.json({
-      content: messageContent,
+      content: response || 'No response generated.',
       sessionId: sessionId || null,
       timestamp: new Date().toISOString(),
-      model: 'echo-discord',
+      model: 'echo-direct',
       usage: null,
     });
   } catch (error: unknown) {
@@ -54,12 +45,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const status = getBridgeStatus();
+  const status = getEngineStatus();
   return NextResponse.json({
-    status: status.configured ? 'online' : 'configuring',
+    status: status.configured ? 'online' : 'offline',
     service: 'Echo CLI Relay',
-    version: '2.0.0',
-    bridge: status,
+    version: '3.0.0',
+    engine: status,
     timestamp: new Date().toISOString(),
   });
 }

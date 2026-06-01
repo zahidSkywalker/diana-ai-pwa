@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
+import { aiChat, getEngineStatus } from '@/lib/ai-engine';
 
 interface ChatMessage {
   role: string;
@@ -29,10 +29,7 @@ function createTextSSEStream(text: string) {
   });
 }
 
-// ─── Stream Echo's Discord bridge response as SSE ──────
-function createBridgeSSEStream(text: string) {
-  return createTextSSEStream(text);
-}
+const SYSTEM_PROMPT = `You are Echo AI, an advanced AI assistant created by Zahidul Islam. You are intelligent, creative, and versatile — skilled at coding, research, writing, analysis, math, and much more. Be helpful, concise, and accurate. Format responses in markdown when appropriate.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,19 +39,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
-    const status = getBridgeStatus();
-    if (!status.configured) {
-      const msg = "My Discord bridge is being set up. I'll be ready shortly — check back soon!";
-      return new Response(createTextSSEStream(msg), {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          Connection: 'keep-alive',
-        },
-      });
-    }
-
-    // Build user message from conversation history
     const lastUserMsg = messages
       .filter((m: ChatMessage) => m.role === 'user')
       .pop();
@@ -63,21 +47,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No user message found' }, { status: 400 });
     }
 
-    // Build context from conversation history (exclude last user message)
-    const history = messages
-      .filter((m: ChatMessage) => m.role !== 'system' && m !== lastUserMsg)
-      .map((m: ChatMessage) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
-      .join('\n');
+    // Build conversation for AI — include history for context
+    const aiMessages = messages
+      .filter((m: ChatMessage) => m.role !== 'system')
+      .map((m: ChatMessage) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
 
-    const fullMessage = history
-      ? `[Conversation context]:\n${history}\n\n[Current message]: ${lastUserMsg.content}`
-      : lastUserMsg.content;
-
-    // Send through Discord bridge — Echo's AI brain
-    const response = await bridgeChat(fullMessage);
+    // Direct AI call — no Discord, no bridge
+    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
 
     if (!response) {
-      const errMsg = "I couldn't reach my brain right now. Please try again in a moment.";
+      const errMsg = "I couldn't process that right now. Please try again in a moment.";
       return new Response(createTextSSEStream(errMsg), {
         headers: {
           'Content-Type': 'text/event-stream',
@@ -87,7 +69,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return new Response(createBridgeSSEStream(response), {
+    return new Response(createTextSSEStream(response), {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -105,12 +87,12 @@ export async function POST(req: NextRequest) {
 
 // Status endpoint
 export async function GET() {
-  const status = getBridgeStatus();
+  const status = getEngineStatus();
   return NextResponse.json({
-    status: status.configured ? 'online' : 'configuring',
+    status: status.configured ? 'online' : 'offline',
     service: 'Echo AI Chat',
-    version: '2.0.0',
-    bridge: status,
+    version: '3.0.0',
+    engine: status,
     timestamp: new Date().toISOString(),
   });
 }

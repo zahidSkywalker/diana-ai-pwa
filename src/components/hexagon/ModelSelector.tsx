@@ -20,7 +20,7 @@ interface ModelSelectorProps {
 }
 
 const modelIcons: Record<string, React.ReactNode> = {
-  discord: <Hexagon className="h-3 w-3" />,
+  'z-ai': <Sparkles className="h-3 w-3" />,
 };
 
 const tierIcons: Record<string, React.ReactNode> = {

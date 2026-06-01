@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bridgeChat, getBridgeStatus } from '@/lib/discord-bridge';
+import { aiChat, getEngineStatus } from '@/lib/ai-engine';
 
 const CLI_TOKEN = process.env.ZENITH_TOKEN || 'zenith-cli-2026';
+
+const SYSTEM_PROMPT = `You are Echo AI, a versatile assistant handling requests from the Zenith CLI client. Help with any task. Be concise and direct.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,24 +17,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages required' }, { status: 400 });
     }
 
-    const status = getBridgeStatus();
-    if (!status.configured) {
-      return NextResponse.json({
-        content: "Zenith's Discord bridge is being configured. Please try again shortly.",
-        tool_calls: null,
-        finish_reason: 'stop',
-        usage: null,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // Build prompt from messages for Echo
-    const history = messages
+    const aiMessages = messages
       .filter((m: { role: string }) => m.role !== 'system')
-      .map((m: { role: string; content: string }) => `${m.role === 'assistant' ? 'Echo' : 'User'}: ${m.content}`)
-      .join('\n');
+      .map((m: { role: string; content: string }) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+      }));
 
-    const response = await bridgeChat(history);
+    const response = await aiChat(aiMessages, SYSTEM_PROMPT);
 
     return NextResponse.json({
       id: response ? `zenith_${Date.now()}` : undefined,
@@ -50,13 +42,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  const status = getBridgeStatus();
+  const status = getEngineStatus();
   return NextResponse.json({
-    status: status.configured ? 'online' : 'configuring',
+    status: status.configured ? 'online' : 'offline',
     service: 'Zenith Relay',
-    version: '2.0.0',
+    version: '3.0.0',
     creator: 'Zahidul Islam',
-    bridge: status,
+    engine: status,
     timestamp: new Date().toISOString(),
   });
 }
