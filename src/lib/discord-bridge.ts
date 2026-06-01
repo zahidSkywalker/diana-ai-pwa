@@ -116,8 +116,8 @@ async function sendViaWebhook(content: string): Promise<string | null> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         content: finalContent,
-        username: 'PWA User',
-        avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png',
+        username: 'User',
+        avatar_url: 'https://cdn.discordapp.com/embed/avatars/4.png',
       }),
     });
 
